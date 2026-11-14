@@ -6,3 +6,4 @@ venv/
 *.log
 instance/
 .pytest_cache/
+*.db
