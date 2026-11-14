@@ -24,10 +24,10 @@ app = Flask(
 )
 # Random key on every server start: old login cookies stop working,
 # so everyone has to enter username/password again after a restart.
-app.secret_key = os.urandom(32)
+app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32)
 app.config["SESSION_PERMANENT"] = False          # cookie dies when browser closes
 app.config["SESSION_COOKIE_HTTPONLY"] = True
-DB_PATH = os.path.join(BASE_DIR, "placement_portal.db")
+DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "placement_portal.db"))
 
 
 # ====================================================================
@@ -718,7 +718,15 @@ def companies():
 # APPLICATION ENTRYPOINT
 # ====================================================================
 
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
+# Initialize the SQLite schema for both local runs and production WSGI servers.
+init_db()
+
+
 if __name__ == "__main__":
-    init_db()
-    print("Placement Preparation Portal starting on http://127.0.0.1:5000 ...")
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    print("Placement Preparation Portal starting on http://0.0.0.0:5000 ...")
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")), debug=False)
